@@ -1,18 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>skirkimage Gallery</title>
-    
+    <title>skirk image Gallery</title>
+
     <!-- CSS is now included directly in the file -->
     <style>
         :root {
             --primary-color: #2c3e50;
+            --secondary-color: #3498db;
             --background-color: #ecf0f1;
             --card-background: #ffffff;
             --text-color: #34495e;
-            --shadow: 0 4px 8px rgba(0,0,0,0.1);
+            --shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            --gradient-start: #3498db;
+            --gradient-end: #2c3e50;
+            --control-panel-bg: rgba(255, 255, 255, 0.9);
+            --control-panel-text: #333;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #ecf0f1;
+            --secondary-color: #3498db;
+            --background-color: #1a1a2e;
+            --card-background: #16213e;
+            --text-color: #ecf0f1;
+            --shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            --gradient-start: #0f3460;
+            --gradient-end: #16213e;
+            --control-panel-bg: rgba(22, 33, 62, 0.9);
+            --control-panel-text: #ecf0f1;
         }
 
         body {
@@ -21,15 +40,41 @@
             color: var(--text-color);
             margin: 0;
             padding: 20px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            background-image: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+            min-height: 100vh;
         }
 
         header {
             text-align: center;
             margin-bottom: 30px;
+            position: relative;
         }
 
         header h1 {
             color: var(--primary-color);
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
         }
 
         #searchInput {
@@ -40,6 +85,15 @@
             border: 1px solid #ccc;
             border-radius: 8px;
             box-shadow: var(--shadow);
+            background-color: var(--card-background);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        #searchInput:focus {
+            outline: none;
+            box-shadow: 0 0 10px var(--secondary-color);
+            border-color: var(--secondary-color);
         }
 
         #image-gallery {
@@ -56,13 +110,26 @@
             overflow: hidden;
             width: 100%;
             max-width: 300px;
-            transition: transform 0.2s ease-in-out;
+            transition: transform 0.2s ease-in-out, box-shadow 0.3s ease;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
 
         .image-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .image-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+            z-index: 1;
         }
 
         .image-card img {
@@ -70,6 +137,11 @@
             height: 200px;
             object-fit: cover;
             display: block;
+            transition: filter 0.3s ease;
+        }
+
+        .image-card:hover img {
+            filter: brightness(1.1);
         }
 
         .image-card-content {
@@ -88,22 +160,40 @@
         }
 
         .copy-button {
-            background-color: #3498db;
+            background: linear-gradient(45deg, var(--gradient-start), var(--gradient-end));
             color: white;
             border: none;
             padding: 10px;
             border-radius: 5px;
             cursor: pointer;
             font-size: 14px;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .copy-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left 0.3s ease;
+        }
+
+        .copy-button:hover::before {
+            left: 100%;
         }
 
         .copy-button:hover {
-            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
         }
 
         .copy-button.copied {
-            background-color: #2ecc71;
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
         }
 
         footer {
@@ -113,7 +203,300 @@
         }
 
         footer a {
-            color: #3498db;
+            color: var(--secondary-color);
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(45deg, var(--gradient-start), var(--gradient-end));
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .theme-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--control-panel-bg);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            width: 300px;
+            max-height: 500px;
+            overflow-y: auto;
+            transform: translateY(calc(100% + 30px));
+            transition: transform 0.3s ease;
+            z-index: 100;
+            color: var(--control-panel-text);
+        }
+
+        .control-panel.open {
+            transform: translateY(0);
+        }
+
+        .control-panel-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, var(--gradient-start), var(--gradient-end));
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            z-index: 99;
+        }
+
+        .control-panel.open~.control-panel-toggle {
+            transform: scale(0);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .control-panel-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .control-panel-toggle svg {
+            width: 30px;
+            height: 30px;
+            fill: white;
+        }
+
+        .control-panel h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: var(--control-panel-text);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-panel {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--control-panel-text);
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .close-panel:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .color-control {
+            margin-bottom: 15px;
+        }
+
+        .color-control label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: var(--control-panel-text);
+        }
+
+        .color-input-group {
+            display: flex;
+            align-items: center;
+        }
+
+        .color-input {
+            width: 50px;
+            height: 30px;
+            border: none;
+            border-radius: 5px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .color-value {
+            flex-grow: 1;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: var(--card-background);
+            color: var(--text-color);
+        }
+
+        .gradient-toggle {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .gradient-toggle input {
+            margin-right: 10px;
+        }
+
+        .gradient-controls {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.05);
+            border-radius: 5px;
+        }
+
+        .gradient-controls h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: var(--control-panel-text);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .apply-button,
+        .surprise-button,
+        .reset-button {
+            flex: 1;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .apply-button {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+        }
+
+        .surprise-button {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+            color: white;
+        }
+
+        .reset-button {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .apply-button:hover,
+        .surprise-button:hover,
+        .reset-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Theme-specific controls */
+        .theme-specific-controls {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .theme-tabs {
+            display: flex;
+            margin-bottom: 15px;
+        }
+
+        .theme-tab {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.05);
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .theme-tab.active {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .theme-tab:first-child {
+            border-radius: 5px 0 0 5px;
+        }
+
+        .theme-tab:last-child {
+            border-radius: 0 5px 5px 0;
+        }
+
+        .theme-colors {
+            display: none;
+        }
+
+        .theme-colors.active {
+            display: block;
+        }
+
+        /* Floating particles for imaginary effect */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: float-particle 15s infinite linear;
+        }
+
+        @keyframes float-particle {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
         }
     </style>
 
@@ -121,9 +504,19 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
 
+    <!-- Floating particles -->
+    <div class="particles" id="particles"></div>
+
     <header>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path
+                    d="M12 18C8.68629 18 6 15.3137 6 12C6 8.68629 8.68629 6 12 6C15.3137 6 18 8.68629 18 12C18 15.3137 15.3137 18 12 18ZM12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16ZM11 1H13V4H11V1ZM11 20H13V23H11V20ZM3.51472 4.92893L4.92893 3.51472L7.05025 5.63604L5.63604 7.05025L3.51472 4.92893ZM16.9497 18.364L18.364 16.9497L20.4853 19.0711L19.0711 20.4853L16.9497 18.364ZM19.0711 3.51472L20.4853 4.92893L18.364 7.05025L16.9497 5.63604L19.0711 3.51472ZM5.63604 16.9497L7.05025 18.364L4.92893 20.4853L3.51472 19.0711L5.63604 16.9497ZM23 11V13H20V11H23ZM4 11V13H1V11H4Z" />
+            </svg>
+        </button>
         <h1>skirkimage Gallery</h1>
         <input type="text" id="searchInput" placeholder="Search for an image...">
     </header>
@@ -136,8 +529,167 @@
     </main>
 
     <footer>
-        <p>Images sourced from <a href="https://github.com/Dizzyspoons/skirkimage" target="_blank">Dizzyspoons/skirkimage</a> on GitHub.</p>
+        <p><a href="https://galaxy-hunter-neon.vercel.app/" target="_blank">Galaxy hunter UwU</a></p>
     </footer>
+
+    <!-- Control Panel -->
+    <div class="control-panel" id="controlPanel">
+        <h3>
+            Color Customization
+            <button class="close-panel" id="closePanel" aria-label="Close panel">×</button>
+        </h3>
+
+        <div class="theme-tabs">
+            <button class="theme-tab active" id="lightTab">Light Mode</button>
+            <button class="theme-tab" id="darkTab">Dark Mode</button>
+        </div>
+
+        <!-- Light Mode Colors -->
+        <div class="theme-colors active" id="lightColors">
+            <div class="color-control">
+                <label for="lightPrimaryColor">Primary Color</label>
+                <div class="color-input-group">
+                    <input type="color" id="lightPrimaryColor" class="color-input" value="#2c3e50">
+                    <input type="text" id="lightPrimaryColorValue" class="color-value" value="#2c3e50">
+                </div>
+            </div>
+
+            <div class="color-control">
+                <label for="lightSecondaryColor">Secondary Color</label>
+                <div class="color-input-group">
+                    <input type="color" id="lightSecondaryColor" class="color-input" value="#3498db">
+                    <input type="text" id="lightSecondaryColorValue" class="color-value" value="#3498db">
+                </div>
+            </div>
+
+            <div class="color-control">
+                <label for="lightBackgroundColor">Background Color</label>
+                <div class="color-input-group">
+                    <input type="color" id="lightBackgroundColor" class="color-input" value="#ecf0f1">
+                    <input type="text" id="lightBackgroundColorValue" class="color-value" value="#ecf0f1">
+                </div>
+            </div>
+
+            <div class="color-control">
+                <label for="lightCardBackgroundColor">Card Background</label>
+                <div class="color-input-group">
+                    <input type="color" id="lightCardBackgroundColor" class="color-input" value="#ffffff">
+                    <input type="text" id="lightCardBackgroundColorValue" class="color-value" value="#ffffff">
+                </div>
+            </div>
+
+            <div class="color-control">
+                <label for="lightTextColor">Text Color</label>
+                <div class="color-input-group">
+                    <input type="color" id="lightTextColor" class="color-input" value="#34495e">
+                    <input type="text" id="lightTextColorValue" class="color-value" value="#34495e">
+                </div>
+            </div>
+
+            <div class="gradient-toggle">
+                <input type="checkbox" id="lightGradientToggle" checked>
+                <label for="lightGradientToggle">Enable Gradient Background</label>
+            </div>
+
+            <div class="gradient-controls" id="lightGradientControls">
+                <h4>Gradient Colors</h4>
+                <div class="color-control">
+                    <label for="lightGradientStartColor">Gradient Start</label>
+                    <div class="color-input-group">
+                        <input type="color" id="lightGradientStartColor" class="color-input" value="#3498db">
+                        <input type="text" id="lightGradientStartColorValue" class="color-value" value="#3498db">
+                    </div>
+                </div>
+                <div class="color-control">
+                    <label for="lightGradientEndColor">Gradient End</label>
+                    <div class="color-input-group">
+                        <input type="color" id="lightGradientEndColor" class="color-input" value="#2c3e50">
+                        <input type="text" id="lightGradientEndColorValue" class="color-value" value="#2c3e50">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dark Mode Colors -->
+        <div class="theme-colors" id="darkColors">
+            <div class="color-control">
+                <label for="darkPrimaryColor">Primary Color</label>
+                <div class="color-input-group">
+                    <input type="color" id="darkPrimaryColor" class="color-input" value="#ecf0f1">
+                    <input type="text" id="darkPrimaryColorValue" class="color-value" value="#ecf0f1">
+                </div>
+            </div>
+
+            <div class="color-control">
+                <label for="darkSecondaryColor">Secondary Color</label>
+                <div class="color-input-group">
+                    <input type="color" id="darkSecondaryColor" class="color-input" value="#3498db">
+                    <input type="text" id="darkSecondaryColorValue" class="color-value" value="#3498db">
+                </div>
+            </div>
+
+            <div class="color-control">
+                <label for="darkBackgroundColor">Background Color</label>
+                <div class="color-input-group">
+                    <input type="color" id="darkBackgroundColor" class="color-input" value="#1a1a2e">
+                    <input type="text" id="darkBackgroundColorValue" class="color-value" value="#1a1a2e">
+                </div>
+            </div>
+
+            <div class="color-control">
+                <label for="darkCardBackgroundColor">Card Background</label>
+                <div class="color-input-group">
+                    <input type="color" id="darkCardBackgroundColor" class="color-input" value="#16213e">
+                    <input type="text" id="darkCardBackgroundColorValue" class="color-value" value="#16213e">
+                </div>
+            </div>
+
+            <div class="color-control">
+                <label for="darkTextColor">Text Color</label>
+                <div class="color-input-group">
+                    <input type="color" id="darkTextColor" class="color-input" value="#ecf0f1">
+                    <input type="text" id="darkTextColorValue" class="color-value" value="#ecf0f1">
+                </div>
+            </div>
+
+            <div class="gradient-toggle">
+                <input type="checkbox" id="darkGradientToggle" checked>
+                <label for="darkGradientToggle">Enable Gradient Background</label>
+            </div>
+
+            <div class="gradient-controls" id="darkGradientControls">
+                <h4>Gradient Colors</h4>
+                <div class="color-control">
+                    <label for="darkGradientStartColor">Gradient Start</label>
+                    <div class="color-input-group">
+                        <input type="color" id="darkGradientStartColor" class="color-input" value="#0f3460">
+                        <input type="text" id="darkGradientStartColorValue" class="color-value" value="#0f3460">
+                    </div>
+                </div>
+                <div class="color-control">
+                    <label for="darkGradientEndColor">Gradient End</label>
+                    <div class="color-input-group">
+                        <input type="color" id="darkGradientEndColor" class="color-input" value="#16213e">
+                        <input type="text" id="darkGradientEndColorValue" class="color-value" value="#16213e">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="apply-button" id="applyChanges">Apply</button>
+            <button class="surprise-button" id="surpriseMe">Surprise</button>
+            <button class="reset-button" id="resetColors">Reset</button>
+        </div>
+    </div>
+
+    <!-- Control Panel Toggle Button -->
+    <button class="control-panel-toggle" id="controlPanelToggle" aria-label="Toggle control panel">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path
+                d="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5a3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97c0-.33-.03-.65-.07-.97l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.08-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.32-.07.64-.07.97c0 .33.03.65.07.97l-2.11 1.63c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.39 1.06.73 1.69.98l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.25 1.17-.59 1.69-.98l2.49 1c.22.08.49 0 .61-.22l2-3.46c.13-.22.07-.49-.12-.64l-2.11-1.63Z" />
+        </svg>
+    </button>
 
     <!-- JavaScript is now included directly in the file -->
     <script>
@@ -151,6 +703,709 @@
         };
         // ---------------------
 
+        // Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+
+        // Check for saved theme preference or default to light mode
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        if (currentTheme === 'dark') {
+            body.setAttribute('data-theme', 'dark');
+            updateThemeIcon(true);
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                body.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+                updateThemeIcon(false);
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                updateThemeIcon(true);
+            }
+
+            // Apply saved colors for the current theme
+            applyCurrentThemeColors();
+        });
+
+        function updateThemeIcon(isDark) {
+            if (isDark) {
+                themeToggle.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M17.75,4.09L15.22,6.03L16.13,9.09L13.5,7.28L10.87,9.09L11.78,6.03L9.25,4.09L12.44,4L13.5,1L14.56,4L17.75,4.09M21.25,11L19.61,12.25L20.2,14.23L18.5,13.06L16.8,14.23L17.39,12.25L15.75,11L17.81,10.95L18.5,9L19.19,10.95L21.25,11M18.97,15.95C19.8,15.87 20.69,17.05 20.16,17.8C19.84,18.25 19.5,18.67 19.08,19.07C15.17,23 8.84,23 4.94,19.07C1.03,15.17 1.03,8.83 4.94,4.93C5.34,4.53 5.76,4.17 6.21,3.85C6.96,3.32 8.14,4.21 8.06,5.04C7.79,7.9 8.75,10.87 10.95,13.06C13.14,15.26 16.1,16.22 18.97,15.95M17.33,17.97C14.5,17.81 11.7,16.64 9.53,14.5C7.36,12.31 6.2,9.5 6.04,6.68C3.23,9.82 3.34,14.64 6.35,17.66C9.37,20.67 14.19,20.78 17.33,17.97Z" />
+                    </svg>
+                `;
+            } else {
+                themeToggle.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M12 18C8.68629 18 6 15.3137 6 12C6 8.68629 8.68629 6 12 6C15.3137 6 18 8.68629 18 12C18 15.3137 15.3137 18 12 18ZM12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16ZM11 1H13V4H11V1ZM11 20H13V23H11V20ZM3.51472 4.92893L4.92893 3.51472L7.05025 5.63604L5.63604 7.05025L3.51472 4.92893ZM16.9497 18.364L18.364 16.9497L20.4853 19.0711L19.0711 20.4853L16.9497 18.364ZM19.0711 3.51472L20.4853 4.92893L18.364 7.05025L16.9497 5.63604L19.0711 3.51472ZM5.63604 16.9497L7.05025 18.364L4.92893 20.4853L3.51472 19.0711L5.63604 16.9497ZM23 11V13H20V11H23ZM4 11V13H1V11H4Z" />
+                    </svg>
+                `;
+            }
+        }
+
+        // Control Panel
+        const controlPanelToggle = document.getElementById('controlPanelToggle');
+        const controlPanel = document.getElementById('controlPanel');
+        const closePanel = document.getElementById('closePanel');
+
+        controlPanelToggle.addEventListener('click', () => {
+            controlPanel.classList.add('open');
+        });
+
+        closePanel.addEventListener('click', () => {
+            controlPanel.classList.remove('open');
+        });
+
+        // Theme Tabs
+        const lightTab = document.getElementById('lightTab');
+        const darkTab = document.getElementById('darkTab');
+        const lightColors = document.getElementById('lightColors');
+        const darkColors = document.getElementById('darkColors');
+
+        lightTab.addEventListener('click', () => {
+            lightTab.classList.add('active');
+            darkTab.classList.remove('active');
+            lightColors.classList.add('active');
+            darkColors.classList.remove('active');
+        });
+
+        darkTab.addEventListener('click', () => {
+            darkTab.classList.add('active');
+            lightTab.classList.remove('active');
+            darkColors.classList.add('active');
+            lightColors.classList.remove('active');
+        });
+
+        // Show/hide gradient controls based on toggle
+        const lightGradientToggle = document.getElementById('lightGradientToggle');
+        const lightGradientControls = document.getElementById('lightGradientControls');
+        const darkGradientToggle = document.getElementById('darkGradientToggle');
+        const darkGradientControls = document.getElementById('darkGradientControls');
+
+        lightGradientToggle.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                lightGradientControls.style.display = 'block';
+            } else {
+                lightGradientControls.style.display = 'none';
+            }
+        });
+
+        darkGradientToggle.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                darkGradientControls.style.display = 'block';
+            } else {
+                darkGradientControls.style.display = 'none';
+            }
+        });
+
+        // Initialize gradient controls visibility
+        if (lightGradientToggle.checked) {
+            lightGradientControls.style.display = 'block';
+        } else {
+            lightGradientControls.style.display = 'none';
+        }
+
+        if (darkGradientToggle.checked) {
+            darkGradientControls.style.display = 'block';
+        } else {
+            darkGradientControls.style.display = 'none';
+        }
+
+        // Color Controls
+        const lightPrimaryColorInput = document.getElementById('lightPrimaryColor');
+        const lightPrimaryColorValue = document.getElementById('lightPrimaryColorValue');
+        const lightSecondaryColorInput = document.getElementById('lightSecondaryColor');
+        const lightSecondaryColorValue = document.getElementById('lightSecondaryColorValue');
+        const lightBackgroundColorInput = document.getElementById('lightBackgroundColor');
+        const lightBackgroundColorValue = document.getElementById('lightBackgroundColorValue');
+        const lightCardBackgroundColorInput = document.getElementById('lightCardBackgroundColor');
+        const lightCardBackgroundColorValue = document.getElementById('lightCardBackgroundColorValue');
+        const lightTextColorInput = document.getElementById('lightTextColor');
+        const lightTextColorValue = document.getElementById('lightTextColorValue');
+        const lightGradientStartColorInput = document.getElementById('lightGradientStartColor');
+        const lightGradientStartColorValue = document.getElementById('lightGradientStartColorValue');
+        const lightGradientEndColorInput = document.getElementById('lightGradientEndColor');
+        const lightGradientEndColorValue = document.getElementById('lightGradientEndColorValue');
+
+        const darkPrimaryColorInput = document.getElementById('darkPrimaryColor');
+        const darkPrimaryColorValue = document.getElementById('darkPrimaryColorValue');
+        const darkSecondaryColorInput = document.getElementById('darkSecondaryColor');
+        const darkSecondaryColorValue = document.getElementById('darkSecondaryColorValue');
+        const darkBackgroundColorInput = document.getElementById('darkBackgroundColor');
+        const darkBackgroundColorValue = document.getElementById('darkBackgroundColorValue');
+        const darkCardBackgroundColorInput = document.getElementById('darkCardBackgroundColor');
+        const darkCardBackgroundColorValue = document.getElementById('darkCardBackgroundColorValue');
+        const darkTextColorInput = document.getElementById('darkTextColor');
+        const darkTextColorValue = document.getElementById('darkTextColorValue');
+        const darkGradientStartColorInput = document.getElementById('darkGradientStartColor');
+        const darkGradientStartColorValue = document.getElementById('darkGradientStartColorValue');
+        const darkGradientEndColorInput = document.getElementById('darkGradientEndColor');
+        const darkGradientEndColorValue = document.getElementById('darkGradientEndColorValue');
+
+        const applyChangesButton = document.getElementById('applyChanges');
+        const surpriseMeButton = document.getElementById('surpriseMe');
+        const resetColorsButton = document.getElementById('resetColors');
+
+        // Load saved colors or use defaults
+        const savedColors = JSON.parse(localStorage.getItem('customColors')) || {};
+
+        function loadSavedColors() {
+            // Load light mode colors
+            if (savedColors.light) {
+                if (savedColors.light.primary) {
+                    lightPrimaryColorInput.value = savedColors.light.primary;
+                    lightPrimaryColorValue.value = savedColors.light.primary;
+                }
+
+                if (savedColors.light.secondary) {
+                    lightSecondaryColorInput.value = savedColors.light.secondary;
+                    lightSecondaryColorValue.value = savedColors.light.secondary;
+                }
+
+                if (savedColors.light.background) {
+                    lightBackgroundColorInput.value = savedColors.light.background;
+                    lightBackgroundColorValue.value = savedColors.light.background;
+                }
+
+                if (savedColors.light.cardBackground) {
+                    lightCardBackgroundColorInput.value = savedColors.light.cardBackground;
+                    lightCardBackgroundColorValue.value = savedColors.light.cardBackground;
+                }
+
+                if (savedColors.light.text) {
+                    lightTextColorInput.value = savedColors.light.text;
+                    lightTextColorValue.value = savedColors.light.text;
+                }
+
+                if (savedColors.light.gradientStart) {
+                    lightGradientStartColorInput.value = savedColors.light.gradientStart;
+                    lightGradientStartColorValue.value = savedColors.light.gradientStart;
+                }
+
+                if (savedColors.light.gradientEnd) {
+                    lightGradientEndColorInput.value = savedColors.light.gradientEnd;
+                    lightGradientEndColorValue.value = savedColors.light.gradientEnd;
+                }
+
+                if (savedColors.light.gradientEnabled !== undefined) {
+                    lightGradientToggle.checked = savedColors.light.gradientEnabled;
+                    if (!savedColors.light.gradientEnabled) {
+                        lightGradientControls.style.display = 'none';
+                    }
+                }
+            }
+
+            // Load dark mode colors
+            if (savedColors.dark) {
+                if (savedColors.dark.primary) {
+                    darkPrimaryColorInput.value = savedColors.dark.primary;
+                    darkPrimaryColorValue.value = savedColors.dark.primary;
+                }
+
+                if (savedColors.dark.secondary) {
+                    darkSecondaryColorInput.value = savedColors.dark.secondary;
+                    darkSecondaryColorValue.value = savedColors.dark.secondary;
+                }
+
+                if (savedColors.dark.background) {
+                    darkBackgroundColorInput.value = savedColors.dark.background;
+                    darkBackgroundColorValue.value = savedColors.dark.background;
+                }
+
+                if (savedColors.dark.cardBackground) {
+                    darkCardBackgroundColorInput.value = savedColors.dark.cardBackground;
+                    darkCardBackgroundColorValue.value = savedColors.dark.cardBackground;
+                }
+
+                if (savedColors.dark.text) {
+                    darkTextColorInput.value = savedColors.dark.text;
+                    darkTextColorValue.value = savedColors.dark.text;
+                }
+
+                if (savedColors.dark.gradientStart) {
+                    darkGradientStartColorInput.value = savedColors.dark.gradientStart;
+                    darkGradientStartColorValue.value = savedColors.dark.gradientStart;
+                }
+
+                if (savedColors.dark.gradientEnd) {
+                    darkGradientEndColorInput.value = savedColors.dark.gradientEnd;
+                    darkGradientEndColorValue.value = savedColors.dark.gradientEnd;
+                }
+
+                if (savedColors.dark.gradientEnabled !== undefined) {
+                    darkGradientToggle.checked = savedColors.dark.gradientEnabled;
+                    if (!savedColors.dark.gradientEnabled) {
+                        darkGradientControls.style.display = 'none';
+                    }
+                }
+            }
+
+            // Apply colors for the current theme
+            applyCurrentThemeColors();
+        }
+
+        // Sync color inputs with text inputs
+        function syncColorInputs() {
+            // Light mode color inputs
+            lightPrimaryColorInput.addEventListener('input', (e) => {
+                lightPrimaryColorValue.value = e.target.value;
+            });
+
+            lightPrimaryColorValue.addEventListener('input', (e) => {
+                if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                    lightPrimaryColorInput.value = e.target.value;
+                }
+            });
+
+            lightSecondaryColorInput.addEventListener('input', (e) => {
+                lightSecondaryColorValue.value = e.target.value;
+            });
+
+            lightSecondaryColorValue.addEventListener('input', (e) => {
+                if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                    lightSecondaryColorInput.value = e.target.value;
+                }
+            });
+
+            lightBackgroundColorInput.addEventListener('input', (e) => {
+                lightBackgroundColorValue.value = e.target.value;
+            });
+
+            lightBackgroundColorValue.addEventListener('input', (e) => {
+                if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                    lightBackgroundColorInput.value = e.target.value;
+                }
+            });
+
+            lightCardBackgroundColorInput.addEventListener('input', (e) => {
+                lightCardBackgroundColorValue.value = e.target.value;
+            });
+
+            lightCardBackgroundColorValue.addEventListener('input', (e) => {
+                if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                    lightCardBackgroundColorInput.value = e.target.value;
+                }
+            });
+
+            lightTextColorInput.addEventListener('input', (e) => {
+                lightTextColorValue.value = e.target.value;
+            });
+
+            lightTextColorValue.addEventListener('input', (e) => {
+                if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                    lightTextColorInput.value = e.target.value;
+                }
+            });
+
+            lightGradientStartColorInput.addEventListener('input', (e) => {
+                lightGradientStartColorValue.value = e.target.value;
+            });
+
+            lightGradientStartColorValue.addEventListener('input', (e) => {
+                if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                    lightGradientStartColorInput.value = e.target.value;
+                }
+            });
+
+            lightGradientEndColorInput.addEventListener('input', (e) => {
+                lightGradientEndColorValue.value = e.target.value;
+            });
+
+            lightGradientEndColorValue.addEventListener('input', (e) => {
+                if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                    lightGradientEndColorInput.value = e.target.value;
+                }
+            });
+
+            // Dark mode color inputs
+            darkPrimaryColorInput.addEventListener('input', (e) => {
+                darkPrimaryColorValue.value = e.target.value;
+            });
+
+            darkPrimaryColorValue.addEventListener('input', (e) => {
+                if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                    darkPrimaryColorInput.value = e.target.value;
+                }
+            });
+
+            darkSecondaryColorInput.addEventListener('input', (e) => {
+                darkSecondaryColorValue.value = e.target.value;
+            });
+
+            darkSecondaryColorValue.addEventListener('input', (e) => {
+                if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                    darkSecondaryColorInput.value = e.target.value;
+                }
+            });
+
+            darkBackgroundColorInput.addEventListener('input', (e) => {
+                darkBackgroundColorValue.value = e.target.value;
+            });
+
+            darkBackgroundColorValue.addEventListener('input', (e) => {
+                if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                    darkBackgroundColorInput.value = e.target.value;
+                }
+            });
+
+            darkCardBackgroundColorInput.addEventListener('input', (e) => {
+                darkCardBackgroundColorValue.value = e.target.value;
+            });
+
+            darkCardBackgroundColorValue.addEventListener('input', (e) => {
+                if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                    darkCardBackgroundColorInput.value = e.target.value;
+                }
+            });
+
+            darkTextColorInput.addEventListener('input', (e) => {
+                darkTextColorValue.value = e.target.value;
+            });
+
+            darkTextColorValue.addEventListener('input', (e) => {
+                if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                    darkTextColorInput.value = e.target.value;
+                }
+            });
+
+            darkGradientStartColorInput.addEventListener('input', (e) => {
+                darkGradientStartColorValue.value = e.target.value;
+            });
+
+            darkGradientStartColorValue.addEventListener('input', (e) => {
+                if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                    darkGradientStartColorInput.value = e.target.value;
+                }
+            });
+
+            darkGradientEndColorInput.addEventListener('input', (e) => {
+                darkGradientEndColorValue.value = e.target.value;
+            });
+
+            darkGradientEndColorValue.addEventListener('input', (e) => {
+                if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                    darkGradientEndColorInput.value = e.target.value;
+                }
+            });
+        }
+
+        // Apply colors to the page
+        function applyColors(theme) {
+            const isDark = theme === 'dark';
+
+            if (isDark) {
+                document.documentElement.style.setProperty('--primary-color', darkPrimaryColorInput.value);
+                document.documentElement.style.setProperty('--secondary-color', darkSecondaryColorInput.value);
+                document.documentElement.style.setProperty('--background-color', darkBackgroundColorInput.value);
+                document.documentElement.style.setProperty('--card-background', darkCardBackgroundColorInput.value);
+                document.documentElement.style.setProperty('--text-color', darkTextColorInput.value);
+                document.documentElement.style.setProperty('--gradient-start', darkGradientStartColorInput.value);
+                document.documentElement.style.setProperty('--gradient-end', darkGradientEndColorInput.value);
+
+                if (darkGradientToggle.checked) {
+                    document.body.style.backgroundImage = 'linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%)';
+                } else {
+                    document.body.style.backgroundImage = 'none';
+                }
+            } else {
+                document.documentElement.style.setProperty('--primary-color', lightPrimaryColorInput.value);
+                document.documentElement.style.setProperty('--secondary-color', lightSecondaryColorInput.value);
+                document.documentElement.style.setProperty('--background-color', lightBackgroundColorInput.value);
+                document.documentElement.style.setProperty('--card-background', lightCardBackgroundColorInput.value);
+                document.documentElement.style.setProperty('--text-color', lightTextColorInput.value);
+                document.documentElement.style.setProperty('--gradient-start', lightGradientStartColorInput.value);
+                document.documentElement.style.setProperty('--gradient-end', lightGradientEndColorInput.value);
+
+                if (lightGradientToggle.checked) {
+                    document.body.style.backgroundImage = 'linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%)';
+                } else {
+                    document.body.style.backgroundImage = 'none';
+                }
+            }
+        }
+
+        // Apply colors for the current theme
+        function applyCurrentThemeColors() {
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            applyColors(isDark ? 'dark' : 'light');
+        }
+
+        // Save colors to localStorage
+        function saveColors() {
+            const colors = {
+                light: {
+                    primary: lightPrimaryColorInput.value,
+                    secondary: lightSecondaryColorInput.value,
+                    background: lightBackgroundColorInput.value,
+                    cardBackground: lightCardBackgroundColorInput.value,
+                    text: lightTextColorInput.value,
+                    gradientStart: lightGradientStartColorInput.value,
+                    gradientEnd: lightGradientEndColorInput.value,
+                    gradientEnabled: lightGradientToggle.checked
+                },
+                dark: {
+                    primary: darkPrimaryColorInput.value,
+                    secondary: darkSecondaryColorInput.value,
+                    background: darkBackgroundColorInput.value,
+                    cardBackground: darkCardBackgroundColorInput.value,
+                    text: darkTextColorInput.value,
+                    gradientStart: darkGradientStartColorInput.value,
+                    gradientEnd: darkGradientEndColorInput.value,
+                    gradientEnabled: darkGradientToggle.checked
+                }
+            };
+            localStorage.setItem('customColors', JSON.stringify(colors));
+        }
+
+        // Generate random color
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        // Generate harmonious color scheme
+        function generateColorScheme(isDark) {
+            const baseHue = Math.floor(Math.random() * 360);
+
+            // Convert HSL to Hex
+            function hslToHex(h, s, l) {
+                l /= 100;
+                const a = s * Math.min(l, 1 - l) / 100;
+                const f = n => {
+                    const k = (n + h / 30) % 12;
+                    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+                    return Math.round(255 * color).toString(16).padStart(2, '0');
+                };
+                return `#${f(0)}${f(8)}${f(4)}`;
+            }
+
+            if (isDark) {
+                return {
+                    primary: hslToHex(baseHue, 30, 80),
+                    secondary: hslToHex((baseHue + 30) % 360, 70, 50),
+                    background: hslToHex(baseHue, 40, 15),
+                    cardBackground: hslToHex(baseHue, 30, 20),
+                    text: hslToHex(baseHue, 20, 90),
+                    gradientStart: hslToHex((baseHue + 60) % 360, 60, 20),
+                    gradientEnd: hslToHex(baseHue, 60, 15)
+                };
+            } else {
+                return {
+                    primary: hslToHex(baseHue, 70, 30),
+                    secondary: hslToHex((baseHue + 30) % 360, 70, 50),
+                    background: hslToHex(baseHue, 20, 95),
+                    cardBackground: hslToHex(baseHue, 10, 100),
+                    text: hslToHex(baseHue, 30, 20),
+                    gradientStart: hslToHex((baseHue + 60) % 360, 80, 50),
+                    gradientEnd: hslToHex(baseHue, 80, 30)
+                };
+            }
+        }
+
+        // Apply Changes button
+        applyChangesButton.addEventListener('click', () => {
+            applyCurrentThemeColors();
+            saveColors();
+
+            // Visual feedback
+            applyChangesButton.textContent = 'Applied!';
+            setTimeout(() => {
+                applyChangesButton.textContent = 'Apply';
+            }, 1000);
+        });
+
+        // Surprise Me button
+        surpriseMeButton.addEventListener('click', () => {
+            const isDark = darkTab.classList.contains('active');
+            const scheme = generateColorScheme(isDark);
+
+            if (isDark) {
+                darkPrimaryColorInput.value = scheme.primary;
+                darkPrimaryColorValue.value = scheme.primary;
+
+                darkSecondaryColorInput.value = scheme.secondary;
+                darkSecondaryColorValue.value = scheme.secondary;
+
+                darkBackgroundColorInput.value = scheme.background;
+                darkBackgroundColorValue.value = scheme.background;
+
+                darkCardBackgroundColorInput.value = scheme.cardBackground;
+                darkCardBackgroundColorValue.value = scheme.cardBackground;
+
+                darkTextColorInput.value = scheme.text;
+                darkTextColorValue.value = scheme.text;
+
+                darkGradientStartColorInput.value = scheme.gradientStart;
+                darkGradientStartColorValue.value = scheme.gradientStart;
+
+                darkGradientEndColorInput.value = scheme.gradientEnd;
+                darkGradientEndColorValue.value = scheme.gradientEnd;
+
+                darkGradientToggle.checked = true;
+                darkGradientControls.style.display = 'block';
+            } else {
+                lightPrimaryColorInput.value = scheme.primary;
+                lightPrimaryColorValue.value = scheme.primary;
+
+                lightSecondaryColorInput.value = scheme.secondary;
+                lightSecondaryColorValue.value = scheme.secondary;
+
+                lightBackgroundColorInput.value = scheme.background;
+                lightBackgroundColorValue.value = scheme.background;
+
+                lightCardBackgroundColorInput.value = scheme.cardBackground;
+                lightCardBackgroundColorValue.value = scheme.cardBackground;
+
+                lightTextColorInput.value = scheme.text;
+                lightTextColorValue.value = scheme.text;
+
+                lightGradientStartColorInput.value = scheme.gradientStart;
+                lightGradientStartColorValue.value = scheme.gradientStart;
+
+                lightGradientEndColorInput.value = scheme.gradientEnd;
+                lightGradientEndColorValue.value = scheme.gradientEnd;
+
+                lightGradientToggle.checked = true;
+                lightGradientControls.style.display = 'block';
+            }
+
+            applyCurrentThemeColors();
+            saveColors();
+
+            // Visual feedback
+            surpriseMeButton.textContent = 'Surprised!';
+            setTimeout(() => {
+                surpriseMeButton.textContent = 'Surprise';
+            }, 1000);
+        });
+
+        // Reset Colors button
+        resetColorsButton.addEventListener('click', () => {
+            const isDark = darkTab.classList.contains('active');
+
+            if (isDark) {
+                // Reset to default dark colors
+                const defaultDarkColors = {
+                    primary: '#ecf0f1',
+                    secondary: '#3498db',
+                    background: '#1a1a2e',
+                    cardBackground: '#16213e',
+                    text: '#ecf0f1',
+                    gradientStart: '#0f3460',
+                    gradientEnd: '#16213e'
+                };
+
+                darkPrimaryColorInput.value = defaultDarkColors.primary;
+                darkPrimaryColorValue.value = defaultDarkColors.primary;
+
+                darkSecondaryColorInput.value = defaultDarkColors.secondary;
+                darkSecondaryColorValue.value = defaultDarkColors.secondary;
+
+                darkBackgroundColorInput.value = defaultDarkColors.background;
+                darkBackgroundColorValue.value = defaultDarkColors.background;
+
+                darkCardBackgroundColorInput.value = defaultDarkColors.cardBackground;
+                darkCardBackgroundColorValue.value = defaultDarkColors.cardBackground;
+
+                darkTextColorInput.value = defaultDarkColors.text;
+                darkTextColorValue.value = defaultDarkColors.text;
+
+                darkGradientStartColorInput.value = defaultDarkColors.gradientStart;
+                darkGradientStartColorValue.value = defaultDarkColors.gradientStart;
+
+                darkGradientEndColorInput.value = defaultDarkColors.gradientEnd;
+                darkGradientEndColorValue.value = defaultDarkColors.gradientEnd;
+
+                darkGradientToggle.checked = true;
+                darkGradientControls.style.display = 'block';
+            } else {
+                // Reset to default light colors
+                const defaultLightColors = {
+                    primary: '#2c3e50',
+                    secondary: '#3498db',
+                    background: '#ecf0f1',
+                    cardBackground: '#ffffff',
+                    text: '#34495e',
+                    gradientStart: '#3498db',
+                    gradientEnd: '#2c3e50'
+                };
+
+                lightPrimaryColorInput.value = defaultLightColors.primary;
+                lightPrimaryColorValue.value = defaultLightColors.primary;
+
+                lightSecondaryColorInput.value = defaultLightColors.secondary;
+                lightSecondaryColorValue.value = defaultLightColors.secondary;
+
+                lightBackgroundColorInput.value = defaultLightColors.background;
+                lightBackgroundColorValue.value = defaultLightColors.background;
+
+                lightCardBackgroundColorInput.value = defaultLightColors.cardBackground;
+                lightCardBackgroundColorValue.value = defaultLightColors.cardBackground;
+
+                lightTextColorInput.value = defaultLightColors.text;
+                lightTextColorValue.value = defaultLightColors.text;
+
+                lightGradientStartColorInput.value = defaultLightColors.gradientStart;
+                lightGradientStartColorValue.value = defaultLightColors.gradientStart;
+
+                lightGradientEndColorInput.value = defaultLightColors.gradientEnd;
+                lightGradientEndColorValue.value = defaultLightColors.gradientEnd;
+
+                lightGradientToggle.checked = true;
+                lightGradientControls.style.display = 'block';
+            }
+
+            applyCurrentThemeColors();
+            saveColors();
+
+            // Visual feedback
+            resetColorsButton.textContent = 'Reset!';
+            setTimeout(() => {
+                resetColorsButton.textContent = 'Reset';
+            }, 1000);
+        });
+
+        // Initialize
+        loadSavedColors();
+        syncColorInputs();
+
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 20;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+
+                // Random size between 5px and 15px
+                const size = Math.random() * 10 + 5;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+
+                // Random position
+                particle.style.left = `${Math.random() * 100}%`;
+
+                // Random animation delay
+                particle.style.animationDelay = `${Math.random() * 15}s`;
+
+                // Random opacity
+                particle.style.opacity = Math.random() * 0.5 + 0.2;
+
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        createParticles();
+
+        // Gallery functionality
         const gallery = document.getElementById('image-gallery');
         const searchInput = document.getElementById('searchInput');
         const apiBaseUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${config.path}?ref=${config.branch}`;
@@ -246,4 +1501,5 @@
         fetchAndDisplayImages();
     </script>
 </body>
+
 </html>
