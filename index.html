@@ -159,17 +159,24 @@
             color: var(--primary-color);
         }
 
+        .button-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
         .copy-button {
             background: linear-gradient(45deg, var(--gradient-start), var(--gradient-end));
             color: white;
             border: none;
-            padding: 10px;
+            padding: 8px;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 12px;
             transition: all 0.2s;
             position: relative;
             overflow: hidden;
+            flex: 1;
         }
 
         .copy-button::before {
@@ -1460,17 +1467,21 @@
             const filename = document.createElement('p');
             filename.textContent = file.name;
 
+            // Create a container for the buttons
+            const buttonContainer = document.createElement('div');
+            buttonContainer.className = 'button-container';
+
+            // Button 1: Copy current URL
             const copyButton = document.createElement('button');
             copyButton.className = 'copy-button';
-            // Updated button text to reflect the new URL type
-            copyButton.textContent = 'Copy GitHub Pages URL';
+            copyButton.textContent = 'Current';
 
             copyButton.addEventListener('click', () => {
                 navigator.clipboard.writeText(githubPagesUrl).then(() => {
                     copyButton.textContent = 'Copied!';
                     copyButton.classList.add('copied');
                     setTimeout(() => {
-                        copyButton.textContent = 'Copy GitHub Pages URL';
+                        copyButton.textContent = 'Current';
                         copyButton.classList.remove('copied');
                     }, 2000);
                 }).catch(err => {
@@ -1478,8 +1489,32 @@
                 });
             });
 
+            // Button 2: Copy URL with spaces fixed
+            const spacesFixedButton = document.createElement('button');
+            spacesFixedButton.className = 'copy-button';
+            spacesFixedButton.textContent = 'Spaces Fixed';
+
+            spacesFixedButton.addEventListener('click', () => {
+                // Replace spaces with %20 in the URL
+                const spacesFixedUrl = githubPagesUrl.replace(/ /g, '%20');
+                navigator.clipboard.writeText(spacesFixedUrl).then(() => {
+                    spacesFixedButton.textContent = 'Copied!';
+                    spacesFixedButton.classList.add('copied');
+                    setTimeout(() => {
+                        spacesFixedButton.textContent = 'Spaces Fixed';
+                        spacesFixedButton.classList.remove('copied');
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy URL: ', err);
+                });
+            });
+
+            // Add buttons to the container
+            buttonContainer.appendChild(copyButton);
+            buttonContainer.appendChild(spacesFixedButton);
+
             content.appendChild(filename);
-            content.appendChild(copyButton);
+            content.appendChild(buttonContainer);
             card.appendChild(img);
             card.appendChild(content);
             gallery.appendChild(card);
