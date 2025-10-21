@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>skirkimage Gallery</title>
+    
+    <!-- CSS is now included directly in the file -->
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --background-color: #ecf0f1;
+            --card-background: #ffffff;
+            --text-color: #34495e;
+            --shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+        }
+
+        #searchInput {
+            width: 80%;
+            max-width: 500px;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        #image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            justify-items: center;
+        }
+
+        .image-card {
+            background-color: var(--card-background);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            width: 100%;
+            max-width: 300px;
+            transition: transform 0.2s ease-in-out;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .image-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .image-card-content {
+            padding: 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .image-card p {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            word-break: break-all;
+            color: var(--primary-color);
+        }
+
+        .copy-button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .copy-button:hover {
+            background-color: #2980b9;
+        }
+
+        .copy-button.copied {
+            background-color: #2ecc71;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 14px;
+        }
+
+        footer a {
+            color: #3498db;
+        }
+    </style>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header>
+        <h1>skirkimage Gallery</h1>
+        <input type="text" id="searchInput" placeholder="Search for an image...">
+    </header>
+
+    <main>
+        <div id="image-gallery">
+            <!-- Images will be dynamically inserted here by JavaScript -->
+            <p>Loading images...</p>
+        </div>
+    </main>
+
+    <footer>
+        <p>Images sourced from <a href="https://github.com/Dizzyspoons/skirkimage" target="_blank">Dizzyspoons/skirkimage</a> on GitHub.</p>
+    </footer>
+
+    <!-- JavaScript is now included directly in the file -->
+    <script>
+        // --- CONFIGURATION ---
+        // ONLY EDIT THESE VALUES
+        const config = {
+            owner: 'Dizzyspoons', // Your GitHub username
+            repo: 'skirkimage',   // Your repository name
+            branch: 'main',       // The branch where your images are
+            path: ''              // The folder path. Use '' for root, or 'folder/' for a subfolder
+        };
+        // ---------------------
+
+        const gallery = document.getElementById('image-gallery');
+        const searchInput = document.getElementById('searchInput');
+        const apiBaseUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${config.path}?ref=${config.branch}`;
+        const jsDelivrBaseUrl = `https://cdn.jsdelivr.net/gh/${config.owner}/${config.repo}@${config.branch}/`;
+
+        async function fetchAndDisplayImages() {
+            try {
+                const response = await fetch(apiBaseUrl);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch repository contents: ${response.statusText}`);
+                }
+                const files = await response.json();
+
+                // Filter for image files
+                const imageFiles = files.filter(file => {
+                    const extension = file.name.split('.').pop().toLowerCase();
+                    return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension);
+                });
+
+                gallery.innerHTML = ''; // Clear loading message
+
+                if (imageFiles.length === 0) {
+                    gallery.innerHTML = '<p>No images found in the specified path.</p>';
+                    return;
+                }
+
+                imageFiles.forEach(file => {
+                    createImageCard(file);
+                });
+
+            } catch (error) {
+                console.error(error);
+                gallery.innerHTML = `<p>Error loading images. Check the console for details.</p>`;
+            }
+        }
+
+        function createImageCard(file) {
+            const card = document.createElement('div');
+            card.className = 'image-card';
+
+            const img = document.createElement('img');
+            img.src = file.download_url; // Use GitHub's raw URL for the thumbnail
+            img.alt = file.name;
+            img.loading = 'lazy'; // Lazy load images for performance
+
+            const content = document.createElement('div');
+            content.className = 'image-card-content';
+
+            const filename = document.createElement('p');
+            filename.textContent = file.name;
+
+            const jsDelivrUrl = jsDelivrBaseUrl + file.name;
+            const copyButton = document.createElement('button');
+            copyButton.className = 'copy-button';
+            copyButton.textContent = 'Copy jsDelivr URL';
+
+            copyButton.addEventListener('click', () => {
+                navigator.clipboard.writeText(jsDelivrUrl).then(() => {
+                    copyButton.textContent = 'Copied!';
+                    copyButton.classList.add('copied');
+                    setTimeout(() => {
+                        copyButton.textContent = 'Copy jsDelivr URL';
+                        copyButton.classList.remove('copied');
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy URL: ', err);
+                });
+            });
+
+            content.appendChild(filename);
+            content.appendChild(copyButton);
+            card.appendChild(img);
+            card.appendChild(content);
+            gallery.appendChild(card);
+        }
+
+        // Search functionality
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.image-card');
+
+            cards.forEach(card => {
+                const filename = card.querySelector('p').textContent.toLowerCase();
+                if (filename.includes(searchTerm)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Initial load
+        fetchAndDisplayImages();
+    </script>
+</body>
+</html>
