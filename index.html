@@ -1409,7 +1409,8 @@
         const gallery = document.getElementById('image-gallery');
         const searchInput = document.getElementById('searchInput');
         const apiBaseUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${config.path}?ref=${config.branch}`;
-        const jsDelivrBaseUrl = `https://cdn.jsdelivr.net/gh/${config.owner}/${config.repo}@${config.branch}/`;
+        // Changed from jsDelivr to GitHub Pages URL format
+        const githubPagesBaseUrl = `https://${config.owner.toLowerCase()}.github.io/${config.repo}/`;
 
         async function fetchAndDisplayImages() {
             try {
@@ -1447,7 +1448,9 @@
             card.className = 'image-card';
 
             const img = document.createElement('img');
-            img.src = file.download_url; // Use GitHub's raw URL for the thumbnail
+            // Changed to use GitHub Pages URL for both thumbnail and full image
+            const githubPagesUrl = githubPagesBaseUrl + (config.path ? config.path : '') + file.name;
+            img.src = githubPagesUrl;
             img.alt = file.name;
             img.loading = 'lazy'; // Lazy load images for performance
 
@@ -1457,17 +1460,17 @@
             const filename = document.createElement('p');
             filename.textContent = file.name;
 
-            const jsDelivrUrl = jsDelivrBaseUrl + file.name;
             const copyButton = document.createElement('button');
             copyButton.className = 'copy-button';
-            copyButton.textContent = 'Copy jsDelivr URL';
+            // Updated button text to reflect the new URL type
+            copyButton.textContent = 'Copy GitHub Pages URL';
 
             copyButton.addEventListener('click', () => {
-                navigator.clipboard.writeText(jsDelivrUrl).then(() => {
+                navigator.clipboard.writeText(githubPagesUrl).then(() => {
                     copyButton.textContent = 'Copied!';
                     copyButton.classList.add('copied');
                     setTimeout(() => {
-                        copyButton.textContent = 'Copy jsDelivr URL';
+                        copyButton.textContent = 'Copy GitHub Pages URL';
                         copyButton.classList.remove('copied');
                     }, 2000);
                 }).catch(err => {
