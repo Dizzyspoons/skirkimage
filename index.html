@@ -159,6 +159,24 @@
             color: var(--primary-color);
         }
 
+        .repo-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: white;
+        }
+
+        .repo-skirkimage {
+            background-color: #3498db;
+        }
+
+        .repo-items1 {
+            background-color: #9b59b6;
+        }
+
         .button-container {
             display: flex;
             gap: 10px;
@@ -702,12 +720,22 @@
     <script>
         // --- CONFIGURATION ---
         // ONLY EDIT THESE VALUES
-        const config = {
-            owner: 'Dizzyspoons', // Your GitHub username
-            repo: 'skirkimage',   // Your repository name
-            branch: 'main',       // The branch where your images are
-            path: ''              // The folder path. Use '' for root, or 'folder/' for a subfolder
-        };
+        const configs = [
+            {
+                owner: 'Dizzyspoons', // Your GitHub username
+                repo: 'skirkimage',   // Your repository name
+                branch: 'main',       // The branch where your images are
+                path: '',             // The folder path. Use '' for root, or 'folder/' for a subfolder
+                name: 'skirkimage'    // Display name for this repository
+            },
+            {
+                owner: 'Dizzyspoons', // Your GitHub username
+                repo: 'items1',       // Your repository name
+                branch: 'main',       // The branch where your images are
+                path: '',             // The folder path. Use '' for root, or 'folder/' for a subfolder
+                name: 'items1'        // Display name for this repository
+            }
+        ];
         // ---------------------
 
         // Theme Toggle
@@ -1415,32 +1443,54 @@
         // Gallery functionality
         const gallery = document.getElementById('image-gallery');
         const searchInput = document.getElementById('searchInput');
-        const apiBaseUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${config.path}?ref=${config.branch}`;
-        // Changed from jsDelivr to GitHub Pages URL format
-        const githubPagesBaseUrl = `https://${config.owner.toLowerCase()}.github.io/${config.repo}/`;
 
         async function fetchAndDisplayImages() {
             try {
-                const response = await fetch(apiBaseUrl);
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch repository contents: ${response.statusText}`);
+                gallery.innerHTML = '<p>Loading images...</p>';
+                
+                // Create an array to hold all image files from all repositories
+                let allImageFiles = [];
+                
+                // Fetch from each repository
+                for (const config of configs) {
+                    const apiBaseUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${config.path}?ref=${config.branch}`;
+                    
+                    try {
+                        const response = await fetch(apiBaseUrl);
+                        if (!response.ok) {
+                            throw new Error(`Failed to fetch repository contents: ${response.statusText}`);
+                        }
+                        const files = await response.json();
+                        
+                        // Filter for image files and add repository info
+                        const imageFiles = files.filter(file => {
+                            const extension = file.name.split('.').pop().toLowerCase();
+                            return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension);
+                        }).map(file => ({
+                            ...file,
+                            repoName: config.name,
+                            owner: config.owner,
+                            repo: config.repo,
+                            path: config.path
+                        }));
+                        
+                        allImageFiles = [...allImageFiles, ...imageFiles];
+                    } catch (error) {
+                        console.error(`Error fetching from ${config.name}:`, error);
+                    }
                 }
-                const files = await response.json();
-
-                // Filter for image files
-                const imageFiles = files.filter(file => {
-                    const extension = file.name.split('.').pop().toLowerCase();
-                    return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension);
-                });
 
                 gallery.innerHTML = ''; // Clear loading message
 
-                if (imageFiles.length === 0) {
-                    gallery.innerHTML = '<p>No images found in the specified path.</p>';
+                if (allImageFiles.length === 0) {
+                    gallery.innerHTML = '<p>No images found in the specified repositories.</p>';
                     return;
                 }
 
-                imageFiles.forEach(file => {
+                // Sort images by name
+                allImageFiles.sort((a, b) => a.name.localeCompare(b.name));
+
+                allImageFiles.forEach(file => {
                     createImageCard(file);
                 });
 
@@ -1455,14 +1505,18 @@
             card.className = 'image-card';
 
             const img = document.createElement('img');
-            // Changed to use GitHub Pages URL for both thumbnail and full image
-            const githubPagesUrl = githubPagesBaseUrl + (config.path ? config.path : '') + file.name;
-            img.src = githubPagesUrl;
+            // Use GitHub's raw URL for the thumbnail
+            img.src = file.download_url;
             img.alt = file.name;
             img.loading = 'lazy'; // Lazy load images for performance
 
             const content = document.createElement('div');
             content.className = 'image-card-content';
+
+            // Add repository tag
+            const repoTag = document.createElement('span');
+            repoTag.className = `repo-tag repo-${file.repoName}`;
+            repoTag.textContent = file.repoName;
 
             const filename = document.createElement('p');
             filename.textContent = file.name;
@@ -1477,7 +1531,7 @@
             copyButton.textContent = 'Current';
 
             copyButton.addEventListener('click', () => {
-                navigator.clipboard.writeText(githubPagesUrl).then(() => {
+                navigator.clipboard.writeText(file.download_url).then(() => {
                     copyButton.textContent = 'Copied!';
                     copyButton.classList.add('copied');
                     setTimeout(() => {
@@ -1496,7 +1550,7 @@
 
             spacesFixedButton.addEventListener('click', () => {
                 // Replace spaces with %20 in the URL
-                const spacesFixedUrl = githubPagesUrl.replace(/ /g, '%20');
+                const spacesFixedUrl = file.download_url.replace(/ /g, '%20');
                 navigator.clipboard.writeText(spacesFixedUrl).then(() => {
                     spacesFixedButton.textContent = 'Copied!';
                     spacesFixedButton.classList.add('copied');
@@ -1513,6 +1567,7 @@
             buttonContainer.appendChild(copyButton);
             buttonContainer.appendChild(spacesFixedButton);
 
+            content.appendChild(repoTag);
             content.appendChild(filename);
             content.appendChild(buttonContainer);
             card.appendChild(img);
@@ -1527,7 +1582,8 @@
 
             cards.forEach(card => {
                 const filename = card.querySelector('p').textContent.toLowerCase();
-                if (filename.includes(searchTerm)) {
+                const repoTag = card.querySelector('.repo-tag').textContent.toLowerCase();
+                if (filename.includes(searchTerm) || repoTag.includes(searchTerm)) {
                     card.style.display = 'flex';
                 } else {
                     card.style.display = 'none';
